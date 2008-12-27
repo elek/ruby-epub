@@ -1,0 +1,22 @@
+= ruby-epub
+
+* https://ruby-epub.googlecode.com/
+
+== DESCRIPTION:
+
+An EPUB (and associated file formats, like OPF) library for Ruby.
+
+== REQUIREMENTS:
+
+* Ruby 1.8 or later
+
+== INSTALL:
+
+* sudo gem install ruby-epub
+
+== LICENSE:
+
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright 2008 Arachne Jericho
