@@ -251,14 +251,35 @@ class TestNcxFile < Test::Unit::TestCase
         assert_equal({}, ncx.metadata)
         assert_equal('', ncx.title)
         assert_equal([], ncx.map)
+        assert_equal('', ncx.identifier)
+    end
+
+    def test_add_metadata
+        ncx = Epub::Ncx::NcxFile.new("#{TMP_DIR}/test.ncx")
+        ncx.add_metadata('dtb:depth', '1')
+        assert_equal('1', ncx.metadata['dtb:depth'].content)
+    end
+
+    def test_delete_metadata
+        ncx = Epub::Ncx::NcxFile.new("#{TMP_DIR}/test.ncx")
+        ncx.add_metadata('dtb:depth', '1')
+        ncx.delete_metadata('dtb:depth')
+        assert_nil(ncx.metadata['dtb:depth'])
+    end
+
+    def test_set_identifier
+        ncx = Epub::Ncx::NcxFile.new("#{TMP_DIR}/test.ncx")
+        ncx.identifier = '42'
+        assert_equal('42', ncx.identifier)
     end
 
     def test_create_from_file
         ncx = Epub::Ncx::NcxFile.new("#{DATA_DIR}/us-constitution.ncx")
 
-        assert_equal(4, ncx.metadata.size, 'Expected 4 metadata elements')
         assert_equal('Spontaneous Derivation [Tue Dec 23 20:40:31 -0800 2008]', 
-                     ncx.metadata['dtb:uid'].content)
+                     ncx.identifier)
+
+        assert_equal(3, ncx.metadata.size, 'Expected 3 non-uid metadata elements')
         assert_equal('1', ncx.metadata['dtb:depth'].content)
         assert_equal('0', ncx.metadata['dtb:totalPageCount'].content)
         assert_equal('0', ncx.metadata['dtb:maxPageNumber'].content)

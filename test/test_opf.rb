@@ -233,11 +233,11 @@ end
 class TestOpfFile < Test::Unit::TestCase
     def test_create_from_scratch
         opf = Epub::Opf::OpfFile.new("#{TMP_DIR}/test-1.opf")
-        assert_equal('', opf.dc_title.value)
-        assert_equal('', opf.dc_language.value)
+        assert_equal('', opf.title)
+        assert_equal('', opf.language)
         assert_equal([], opf.meta)
         assert_equal('bookid', opf.dc_identifier.attributes['id'])
-        assert_equal('', opf.dc_identifier.value)
+        assert_equal('', opf.identifier)
         assert_equal([], opf.dc_other)
         assert_equal({}, opf.manifest)
         assert_equal([], opf.spine)
@@ -245,13 +245,31 @@ class TestOpfFile < Test::Unit::TestCase
         assert_equal('toc.ncx', opf.toc)
     end
 
+    def test_set_title
+        opf = Epub::Opf::OpfFile.new("#{TMP_DIR}/test-1.opf")
+        opf.title = 'See Spot Run'
+        assert_equal('See Spot Run', opf.title)
+    end
+
+    def test_set_language
+        opf = Epub::Opf::OpfFile.new("#{TMP_DIR}/test-1.opf")
+        opf.language = 'gb-US'
+        assert_equal('gb-US', opf.language)
+    end
+
+    def test_set_identifier
+        opf = Epub::Opf::OpfFile.new("#{TMP_DIR}/test-1.opf")
+        opf.identifier = '42'
+        assert_equal('42', opf.identifier)
+    end
+
     def test_create_from_file_metadata
         opf = Epub::Opf::OpfFile.new("#{DATA_DIR}/velveteen_rabbit.opf")
-        assert_equal('The Velveteen Rabbit or How Toys Become Real', opf.dc_title.value)
-        assert_equal('en-US', opf.dc_language.value)
+        assert_equal('The Velveteen Rabbit or How Toys Become Real', opf.title)
+        assert_equal('en-US', opf.language)
 
         assert_equal('sdid', opf.dc_identifier.attributes['id'])
-        assert_equal('Spontaneous Derivation [2008.12.10-21:02:00]', opf.dc_identifier.value)
+        assert_equal('Spontaneous Derivation [2008.12.10-21:02:00]', opf.identifier)
 
         identifiers = opf.get_dc_meta('identifier')
         assert_equal(2, identifiers.size, 'Expected 2 identifiers')

@@ -231,6 +231,98 @@ module Epub
                 end
             end
 
+            # Retrieve all dublin core meta elements with the given name.
+            def get_dc_meta(name)
+                if (name == 'title')
+                    dc_list = [@dc_title]
+                elsif (name == 'language')
+                    dc_list = [@dc_language]
+                else
+                    dc_list = @dc_other.select { |item| item.name == name }
+                    dc_list.unshift @dc_identifier if (name == 'identifier')
+                end
+
+                return dc_list
+            end
+
+            # Retrieve all deprecated meta elements with the given name
+            def get_deprecated_meta(name)
+                return @meta.select { |item| item.name == name }
+            end
+
+            def title
+                return @dc_title.value
+            end
+            def title=(title)
+                @dc_title.value = title
+            end
+
+            def language
+                return @dc_language.value
+            end
+            def language=(language)
+                @dc_language.value = language
+            end
+
+            def identifier
+                return @dc_identifier.value
+            end
+            def identifier=(identifier)
+                @dc_identifier.value = identifier
+            end
+
+            def add_manifest_item(id, href, media_type = nil)
+                @manifest[id] = ManifestItem.new(id, href, media_type)
+            end
+            def delete_manifest_item(id)
+                @manifest.delete id
+            end
+
+            # Writes this OPF file to disk, making a backup of the 
+            # previous file if it existed.
+            def write
+                newfile = "#{@file}.new"
+
+                File.open(newfile, "w") do |file|
+                    file.puts <<-END 
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="#{@dc_identifier.attributes['id']}">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        #{@dc_title}
+        #{@dc_language}
+        #{@dc_identifier}
+                    END
+                    @dc_other.each { |item| file.puts item.to_s }
+                    @meta.each { |item| file.puts item.to_s }
+                    file.puts <<-END
+    </metadata>
+    <manifest>
+                    END
+                    @manifest.keys.sort.each { |id| file.puts @manifest[id].to_s }
+                    file.puts <<-END
+    </manifest>
+    <spine toc="#{@toc}">
+                    END
+                    @spine.each { |item| file.puts item.to_s }
+                    file.puts <<-END
+    </spine>
+    <guide>
+                    END
+                    @guide.keys.sort.each { |type| file.puts @guide[type].to_s }
+                    file.puts <<-END
+    </guide>
+</package>
+                    END
+                end
+
+                if (File.exists? @file)
+                    backupfile = "#{@file}.#{Time.new}.bak"
+                    File.rename(@file, backupfile)
+                end
+                File.rename(newfile, @file)
+            end
+
+            private
+
             # Initialize all OPF variables from scratch.
             def create_from_scratch
                 # Specially required DC metadata.
@@ -270,25 +362,6 @@ module Epub
 
                 # The TOC file, which is required for the spine.
                 @toc = 'toc.ncx'
-            end
-
-            # Retrieve all dublin core meta elements with the given name.
-            def get_dc_meta(name)
-                if (name == 'title')
-                    dc_list = [@dc_title]
-                elsif (name == 'language')
-                    dc_list = [@dc_language]
-                else
-                    dc_list = @dc_other.select { |item| item.name == name }
-                    dc_list.unshift @dc_identifier if (name == 'identifier')
-                end
-
-                return dc_list
-            end
-
-            # Retrieve all deprecated meta elements with the given name
-            def get_deprecated_meta(name)
-                return @meta.select { |item| item.name == name }
             end
 
             # Private helper function for create_from_file. 
@@ -368,48 +441,6 @@ module Epub
                 end
             end
 
-            # Writes this OPF file to disk, making a backup of the 
-            # previous file if it existed.
-            def write
-                newfile = "#{@file}.new"
-
-                File.open(newfile, "w") do |file|
-                    file.puts <<-END 
-<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="#{@dc_identifier.attributes['id']}">
-    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
-        #{@dc_title}
-        #{@dc_language}
-        #{@dc_identifier}
-                    END
-                    @dc_other.each { |item| file.puts item.to_s }
-                    @meta.each { |item| file.puts item.to_s }
-                    file.puts <<-END
-    </metadata>
-    <manifest>
-                    END
-                    @manifest.keys.sort.each { |id| file.puts @manifest[id].to_s }
-                    file.puts <<-END
-    </manifest>
-    <spine toc="#{@toc}">
-                    END
-                    @spine.each { |item| file.puts item.to_s }
-                    file.puts <<-END
-    </spine>
-    <guide>
-                    END
-                    @guide.keys.sort.each { |type| file.puts @guide[type].to_s }
-                    file.puts <<-END
-    </guide>
-</package>
-                    END
-                end
-
-                if (File.exists? @file)
-                    backupfile = "#{@file}.#{Time.new}.bak"
-                    File.rename(@file, backupfile)
-                end
-                File.rename(newfile, @file)
-            end
         end
     end
 end

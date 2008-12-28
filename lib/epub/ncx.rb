@@ -83,7 +83,7 @@ module Epub
 
         # Representation of the data in an NCX file.
         class NcxFile
-            attr_accessor :file, :metadata, :title, :map
+            attr_accessor :file, :metadata, :title, :map, :dtb_uid
 
             # Constructor.
             #
@@ -98,44 +98,19 @@ module Epub
                 end
             end
 
-            def create_from_scratch
-                @metadata = {}
-                @title = ''
-                @map = []
+            def add_metadata(name, content)
+                meta = MetaData.new(name, content)
+                @metadata[name] = meta
+            end
+            def delete_metadata(name)
+                @metadata.delete name
             end
 
-            # Helper function for create_from_file that recursively creates navigation points.
-            #
-            # Parameters: 
-            # - element : current XML element representing a navigation point
-            def create_navpoint(element)
-                navPoint = NavigationPoint.new(element.attributes['id'],
-                                               element.attributes['playOrder'], 
-                                               element.elements['navLabel/text'].text,
-                                               element.elements['content'].attributes['src'])
-                element.elements.each('navPoint') do |e|
-                    navPoint.points.push create_navpoint(e)
-                end
-
-                return navPoint
+            def identifier
+                return @dtb_uid.content
             end
-
-            def create_from_file
-                File.open(@file) do |file|
-                    doc = REXML::Document.new file
-
-                    doc.elements.each('ncx/head/meta') do |e|
-                        meta = MetaData.new(e.attributes['name'], e.attributes['content'])
-                        @metadata[meta.name] = meta
-                    end
-
-                    @title = doc.elements['ncx/docTitle/text'].text
-
-                    doc.elements.each('ncx/navMap/navPoint') do |e|
-                        @map.push(create_navpoint(e))
-                    end
-
-                end
+            def identifier=(book_id)
+                @dtb_uid.content = book_id
             end
 
             # Writes this NCX file to disk, making a backup of the 
@@ -147,6 +122,7 @@ module Epub
                     file.puts <<-END
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
+    #{@dtb_uid}
                     END
                     @metadata.keys.sort.each { |key| file.puts @metadata[key] }
                     file.puts <<-END
@@ -169,6 +145,54 @@ module Epub
                     File.rename(@file, backupfile)
                 end
                 File.rename(newfile, @file)
+            end
+
+            private
+
+            def create_from_scratch
+                @dtb_uid = MetaData.new('dtb:uid', '')
+                @metadata = {}
+                @title = ''
+                @map = []
+            end
+
+            # Helper function for create_from_file that recursively 
+            # creates navigation points.
+            #
+            # Parameters: 
+            # - element : current XML element representing a navigation point
+            def create_navpoint(element)
+                navPoint = NavigationPoint.new(element.attributes['id'],
+                                               element.attributes['playOrder'], 
+                                               element.elements['navLabel/text'].text,
+                                               element.elements['content'].attributes['src'])
+                element.elements.each('navPoint') do |e|
+                    navPoint.points.push create_navpoint(e)
+                end
+
+                return navPoint
+            end
+
+            def create_from_file
+                File.open(@file) do |file|
+                    doc = REXML::Document.new file
+
+                    doc.elements.each('ncx/head/meta') do |e|
+                        meta = MetaData.new(e.attributes['name'], e.attributes['content'])
+                        if (e.attributes['name'] == 'dtb:uid')
+                            @dtb_uid.content = meta.content
+                        else
+                            @metadata[meta.name] = meta
+                        end
+                    end
+
+                    @title = doc.elements['ncx/docTitle/text'].text
+
+                    doc.elements.each('ncx/navMap/navPoint') do |e|
+                        @map.push(create_navpoint(e))
+                    end
+
+                end
             end
         end
     end
