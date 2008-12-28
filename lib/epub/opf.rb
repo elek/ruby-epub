@@ -216,7 +216,7 @@ module Epub
         # An OPF file.
         class OpfFile
             attr_accessor :toc, :file, :dc_title, :dc_language, 
-                :dc_identifiers, :dc_other, :meta, :manifest, :spine, :guide
+                :dc_identifier, :dc_other, :meta, :manifest, :spine, :guide
 
             # Constructor.
             #
@@ -240,10 +240,11 @@ module Epub
                 @dc_title = Dc.new('title', '')
                 @dc_language = Dc.new('lang', '')
 
-                # A special case of required metadata: identifier. 
-                # There can be multiple of these, and we index them 
-                # by their 'id' attribute, which must exist.
-                @dc_identifiers = {}
+                # A special case of required metadata: the specified 
+                # unique identifier. There can be multiple of these, 
+                # which are in @dc_other, but only one that uniquely 
+                # identifies this document.
+                @dc_identifier = Dc.new('identifier', '', { 'id' => 'bookid' })
 
                 # Other DC metadata items. There 
                 # can be multiple of each key type (such as multiple 
@@ -277,10 +278,9 @@ module Epub
                     dc_list = [@dc_title]
                 elsif (name == 'language')
                     dc_list = [@dc_language]
-                elsif (name == 'identifier')
-                    dc_list = @dc_identifiers.values
                 else
                     dc_list = @dc_other.select { |item| item.name == name }
+                    dc_list.unshift @dc_identifier if (name == 'identifier')
                 end
 
                 return dc_list
@@ -323,9 +323,14 @@ module Epub
                         when 'language'
                             @dc_language.value = element.text
                         when 'identifier'
-                            @dc_identifiers[element.attributes['id']] = 
-                                Dc.new('identifier', element.text, 
-                                      hash_from_xml_attributes(element, true, 'dc'))
+                            attributes = hash_from_xml_attributes(element, true, 'dc')
+                            if (attributes.has_key?('id'))
+                                @dc_identifier.value = element.text
+                                @dc_identifier.attributes = attributes
+                            else
+                                dc_item = Dc.new(element.name, element.text, attributes)
+                                @dc_other.push dc_item
+                            end
                         when 'meta'
                             attributes = hash_from_xml_attributes(element)
                             attributes.delete('name')
@@ -370,12 +375,12 @@ module Epub
 
                 File.open(newfile, "w") do |file|
                     file.puts <<-END 
-<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="bookid">
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="#{@dc_identifier.attributes['id']}">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
         #{@dc_title}
         #{@dc_language}
+        #{@dc_identifier}
                     END
-                    @dc_identifiers.keys.sort.each { |id| file.puts @dc_identifiers[id].to_s }
                     @dc_other.each { |item| file.puts item.to_s }
                     @meta.each { |item| file.puts item.to_s }
                     file.puts <<-END

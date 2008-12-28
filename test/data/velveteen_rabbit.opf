@@ -1,11 +1,12 @@
-<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="bookid">
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="sdid">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
     <dc:title>The Velveteen Rabbit or How Toys Become Real</dc:title>
     <dc:creator opf:file-as="Williams, Margery" opf:role="aut">Margery Williams</dc:creator>
     <dc:creator opf:file-as="Nicholson, William" opf:role="ill">William Nicholson</dc:creator>
     <dc:language>en-US</dc:language>
-    <dc:identifier id="bookid">Spontaneous Derivation [2008.12.10-21:02:00]</dc:identifier>
+    <dc:identifier id="sdid">Spontaneous Derivation [2008.12.10-21:02:00]</dc:identifier>
     <dc:rights>Public Domain</dc:rights>
+    <dc:identifier opf:schema="isbn">124566820-X</dc:identifier>
     <meta name="cover" content="cover-image"/>
   </metadata>
   <manifest>

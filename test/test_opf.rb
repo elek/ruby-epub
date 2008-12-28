@@ -236,7 +236,8 @@ class TestOpfFile < Test::Unit::TestCase
         assert_equal('', opf.dc_title.value)
         assert_equal('', opf.dc_language.value)
         assert_equal([], opf.meta)
-        assert_equal({}, opf.dc_identifiers)
+        assert_equal('bookid', opf.dc_identifier.attributes['id'])
+        assert_equal('', opf.dc_identifier.value)
         assert_equal([], opf.dc_other)
         assert_equal({}, opf.manifest)
         assert_equal([], opf.spine)
@@ -248,9 +249,16 @@ class TestOpfFile < Test::Unit::TestCase
         opf = Epub::Opf::OpfFile.new("#{DATA_DIR}/velveteen_rabbit.opf")
         assert_equal('The Velveteen Rabbit or How Toys Become Real', opf.dc_title.value)
         assert_equal('en-US', opf.dc_language.value)
-        assert_equal(1, opf.dc_identifiers.size, 'Expected 1 identifier')
-        assert_equal('Spontaneous Derivation [2008.12.10-21:02:00]', 
-                     opf.dc_identifiers['bookid'].value)
+
+        assert_equal('sdid', opf.dc_identifier.attributes['id'])
+        assert_equal('Spontaneous Derivation [2008.12.10-21:02:00]', opf.dc_identifier.value)
+
+        identifiers = opf.get_dc_meta('identifier')
+        assert_equal(2, identifiers.size, 'Expected 2 identifiers')
+        assert_equal('sdid', identifiers[0].attributes['id'])
+        assert_equal('Spontaneous Derivation [2008.12.10-21:02:00]', identifiers[0].value)
+        assert_equal('isbn', identifiers[1].attributes['opf:schema'])
+        assert_equal('124566820-X', identifiers[1].value)
 
         creators = opf.get_dc_meta('creator')
         assert_equal(2, creators.size, 'Expected 2 creators')
