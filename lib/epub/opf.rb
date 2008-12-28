@@ -58,6 +58,7 @@ module Epub
             'jpeg' => 'image/jpeg', 
             'png' => 'image/png', 
             'css' => 'text/css',
+            'ncx' => 'application/x-dbtncx+xml',
         }
 
         # Convenience listing of allowed reference types
@@ -71,7 +72,7 @@ module Epub
         # They tend to look like this:
         #
         # <dc:title>Title</dc:title>
-        # <dc:creator opf:file-as="Doe, John">John Doe</dc:creator>
+        # <dc:creator opf:file-as="Doe, John" opf:role="aut">John Doe</dc:creator>
         #
         # and so on.
         #
@@ -84,8 +85,8 @@ module Epub
             # Paramters:
             # - name: name of the metadata element, without the dc: prefix
             # - value: value of the metadata element (like Title)
-            # - attributes: hash of key => value, where key must include 
-            #               prefix elements like opf:
+            # - attributes: hash of key => value, where keys are prefixed with the 
+            #               opf prefix when necessary.
             # 
             def initialize(name, value, attributes = {})
                 @name = name
@@ -126,13 +127,8 @@ module Epub
             def to_s
                 s = %Q(<meta name="#{@name}" content="#{@value}")
                 @attributes.keys.sort.each do |key|
-                    case key
-                    when 'name', 'content' 
-                        next
-                    else
-                        attribute = @attributes[key]
-                        s += %Q( #{key}="#{attribute}")
-                    end
+                    attribute = @attributes[key]
+                    s += %Q( #{key}="#{attribute}")
                 end
                 s += "/>"
                 return s
@@ -154,14 +150,31 @@ module Epub
             # Parameters: 
             # - id: identifier of the item
             # - href: location relative to the root of the item
-            # - media_type: media/mimetype of the item
-            def initialize(id, href, media_type)
+            # - media_type: media/mimetype of the item. Can just be the suffix 
+            #               if the suffix exists in Epub::Opf::MEDIA_TYPES.
+            #               If not present, looks at the suffix of the href.
+            def initialize(id, href, media_type = nil)
                 @id = id
                 @href = href
-                @media_type = media_type
+                if (media_type)
+                    self.media_type = media_type
+                else
+                    if (href =~ /\.([^.]+)$/)
+                        self.media_type = MEDIA_TYPES[$1] || $1
+                    else
+                        raise "No media type given and '#{href}' has no suffix"
+                    end
+                end
+            end
+            # Sets the media type. 
+            # Parameters: 
+            # - media_type: media/mimetype of the item. Can just be the suffix 
+            #               if the suffix exists in Epub::Opf::MEDIA_TYPES
+            def media_type=(media_type)
+                @media_type = MEDIA_TYPES[media_type] || media_type
             end
             def to_s
-                return %Q(<item id="#{@id}" href="#{@href}" media-type="#{@media_type}">)
+                return %Q(<item id="#{@id}" href="#{@href}" media-type="#{@media_type}"/>)
             end
         end
 
@@ -203,7 +216,7 @@ module Epub
         # An OPF file.
         class OpfFile
             attr_accessor :toc, :file, :dc_title, :dc_language, 
-                :dc_other, :meta, :manifest, :spine, :guide
+                :dc_identifiers, :dc_other, :meta, :manifest, :spine, :guide
 
             # Constructor.
             #
@@ -226,6 +239,11 @@ module Epub
                 # one each, although this can easily be extended.
                 @dc_title = Dc.new('title', '')
                 @dc_language = Dc.new('lang', '')
+
+                # A special case of required metadata: identifier. 
+                # There can be multiple of these, and we index them 
+                # by their 'id' attribute, which must exist.
+                @dc_identifiers = {}
 
                 # Other DC metadata items. There 
                 # can be multiple of each key type (such as multiple 
@@ -253,44 +271,94 @@ module Epub
                 @toc = 'toc.ncx'
             end
 
+            # Retrieve all dublin core meta elements with the given name.
+            def get_dc_meta(name)
+                if (name == 'title')
+                    dc_list = [@dc_title]
+                elsif (name == 'language')
+                    dc_list = [@dc_language]
+                elsif (name == 'identifier')
+                    dc_list = @dc_identifiers.values
+                else
+                    dc_list = @dc_other.select { |item| item.name == name }
+                end
+
+                return dc_list
+            end
+
+            # Retrieve all deprecated meta elements with the given name
+            def get_deprecated_meta(name)
+                return @meta.select { |item| item.name == name }
+            end
+
+            # Private helper function for create_from_file. 
+            #
+            # Can be used to namespace-expand the names of only attributes 
+            # that are not in the given namespace.
+            #
+            # Parameters:
+            # - element : REXML element to get attributes from
+            # - expand : expand namespaces for attribute names
+            # - ns : namespace to not fully expand
+            def hash_from_xml_attributes(element, expand = false, ns = '')
+                attributes = {}
+                element.attributes.each_attribute { |a| 
+                    key = a.name
+                    key = "#{a.prefix}:#{key}" if (expand && (a.prefix != ns))
+                    attributes[key] = a.value
+                }
+                return attributes
+            end
+
             # Read in values from the @file.
             def create_from_file
+
                 File.open(@file) do |file|
                     doc = REXML::Document.new file
 
                     doc.elements['package/metadata'].elements.each do |element|
                         case element.name
-                        when 'dc:title'
+                        when 'title'
                             @dc_title.value = element.text
-                        when 'dc:language'
+                        when 'language'
                             @dc_language.value = element.text
-                        when /^dc:(.+)$/
-                            dc_item = Dc.new($1, element.text, element.attributes)
-                            @dc_other.push @dc_item
+                        when 'identifier'
+                            @dc_identifiers[element.attributes['id']] = 
+                                Dc.new('identifier', element.text, 
+                                      hash_from_xml_attributes(element, true, 'dc'))
                         when 'meta'
+                            attributes = hash_from_xml_attributes(element)
+                            attributes.delete('name')
+                            attributes.delete('content')
                             meta_item = Meta.new(element.attributes['name'],
                                                  element.attributes['content'], 
-                                                 element.attributes)
+                                                 attributes)
                             @meta.push meta_item
+                        else
+                            attributes = hash_from_xml_attributes(element, true, 'dc')
+                            dc_item = Dc.new(element.name, element.text, attributes)
+                            @dc_other.push dc_item
                         end
                     end
 
-                    doc.elements['package/manifest/item'].each do |element|
-                        @manifest[item.id] = ManfestItem.new(
-                            element.attributes['id'],
-                            element.attributes['href'],
-                            element.attributes['media-type'])
+                    doc.elements.each('package/manifest/item') do |item|
+                        @manifest[item.attributes['id']] = ManifestItem.new(
+                            item.attributes['id'],
+                            item.attributes['href'],
+                            item.attributes['media-type'])
                     end
 
-                    doc.elements['package/spine/itemref'].each do |element|
-                        @spine.push(SpineItem.new[element.attributes['itemref']])
+                    doc.elements.each('package/spine/itemref') do |element|
+                        @spine.push(SpineItemRef.new(element.attributes['idref']))
                     end
 
-                    doc.elements['package/guide/reference'].each do |element|
-                        @guide[item.type] = GuideReference.new(
+                    @toc = doc.elements['package/spine'].attributes['toc']
+
+                    doc.elements.each('package/guide/reference') do |element|
+                        @guide[element.attributes['type']] = GuideReference.new(
                             element.attributes['type'],
-                            element.attributes['href'],
-                            element.attributes['title'])
+                            element.attributes['title'],
+                            element.attributes['href'])
                     end
                 end
             end
@@ -304,9 +372,10 @@ module Epub
                     file.puts <<-END 
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="bookid">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
-                    #{@dc_title}
-                    #{@dc_language}
+        #{@dc_title}
+        #{@dc_language}
                     END
+                    @dc_identifiers.keys.sort.each { |id| file.puts @dc_identifiers[id].to_s }
                     @dc_other.each { |item| file.puts item.to_s }
                     @meta.each { |item| file.puts item.to_s }
                     file.puts <<-END

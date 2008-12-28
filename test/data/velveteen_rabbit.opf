@@ -1,0 +1,35 @@
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="bookid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:title>The Velveteen Rabbit or How Toys Become Real</dc:title>
+    <dc:creator opf:file-as="Williams, Margery" opf:role="aut">Margery Williams</dc:creator>
+    <dc:creator opf:file-as="Nicholson, William" opf:role="ill">William Nicholson</dc:creator>
+    <dc:language>en-US</dc:language>
+    <dc:identifier id="bookid">Spontaneous Derivation [2008.12.10-21:02:00]</dc:identifier>
+    <dc:rights>Public Domain</dc:rights>
+    <meta name="cover" content="cover-image"/>
+  </metadata>
+  <manifest>
+    <item id="epub-ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+    <item id="toc" href="toc.html" media-type="application/xhtml+xml"/>
+    <item id="titlepage" href="content/title.html" media-type="application/xhtml+xml"/>
+    <item id="text" href="content/text.html" media-type="application/xhtml+xml"/>
+    <item id="stylesheet" href="content/css/style.css" media-type="text/css"/>
+
+    <item id="image_1" href="content/images/christmas-morning.jpg" media-type="image/jpeg"/>
+  </manifest>
+  <spine toc="epub-ncx">
+    <itemref idref="titlepage"/>
+    <itemref idref="toc"/>
+    <itemref idref="text"/>
+    <itemref idref="titlepage"/>
+  </spine>
+  <guide>
+    <reference type="title-page" title="Title Page"        
+      href="content/title.html" />
+    <reference type="toc"        title="Table of Contents" 
+      href="toc.html" />
+    <reference type="text"       title="Start Reading"              
+      href="content/text.html" />
+  </guide>
+
+</package>
