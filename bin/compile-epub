@@ -1,0 +1,14 @@
+#!/usr/bin/ruby
+# 
+# Compiles an epub file from an epub project directory
+#
+require 'epub'
+
+$directory = ARGV[0] || '.'
+if (!File.exists? $directory)
+    STDERR.puts "Directory '#{$directory}' doesn't exist!"
+    exit 1
+end
+
+$project = Epub::Project.new($directory)
+$project.compile

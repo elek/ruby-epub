@@ -35,8 +35,10 @@ module Epub
         # directory and returns the path to the OPF file.
         #
         def ContainerFile.get_opf_path(directory)
-            doc = REXML::Document.new "#{directory}/META-INF/container.xml"
+            file = File.new "#{directory}/META-INF/container.xml"
+            doc = REXML::Document.new file
             path = doc.elements['container/rootfiles/rootfile'].attributes['full-path']
+            file.close
             return path
         end
     end

@@ -18,6 +18,7 @@ module Epub
     # across multiple files (in particular, the OPF and the NCX).
     class Project
         DEFAULT_OPF_FILE = 'metadata.opf'
+        DEFAULT_NCX_FILE_ID = 'toc'
         DEFAULT_NCX_FILE = 'toc.ncx'
         DEFAULT_TITLE = 'TITLE'
         DEFAULT_LANGUAGE = 'en-US'
@@ -32,7 +33,7 @@ module Epub
             @directory = directory
 
             if (File.exists? @directory)
-                raise "'#{@directory}' is not a directory" if (File.directory? @directory)
+                raise "'#{@directory}' is not a directory" if (!File.directory? @directory)
                 initialize_from_existing
             else
                 create_new_project
@@ -46,11 +47,38 @@ module Epub
             @ncx_file.title = title
         end
 
-        # Sets the identifier of the project.
+        # Sets the unique identifier of the project.
         def identifier=(identifier)
             @identifier = identifier
             @opf_file.identifier = identifier
             @ncx_file.identifier = identifier
+        end
+
+        # Writes all files using the current state. 
+        def save
+            @opf_file.write
+            @ncx_file.write
+        end
+
+        # Compiles the actual epub file.  Saves the project 
+        # before proceeding.
+        #
+        # TODO: use Archive::Zip instead of external command
+        def compile
+            save
+
+            old_dir = Dir.pwd
+            begin
+                Dir.chdir @directory
+
+                epub_file = "#{File.join(old_dir, @title.gsub(/'" /, '_'))}.epub"
+
+                # TODO: get all files involved from OPF.
+                system(%Q(zip -Xr9D '#{epub_file}' mimetype))
+                system(%Q(zip -Xr9D '#{epub_file}' * -x mimetype))
+            ensure
+                Dir.chdir old_dir
+            end
         end
 
         private
@@ -58,9 +86,10 @@ module Epub
         # Full path to the project directory.
         #
         # Parameters: 
-        # - localpath : if given, prepends the full path
-        def fullpath(localpath = '')
-            return "#{@directory}/#{localpath}"
+        # - localpath : if given, prepends the full path; 
+        #               can be an array of path elements.
+        def fullpath(localpath)
+            return File.join(@directory, *localpath)
         end
 
         # Reads in data from an existing project
@@ -72,7 +101,9 @@ module Epub
             @opf_file = Epub::Opf::OpfFile.new(fullpath(opf_location))
             @title = @opf_file.title
             @identifier = @opf_file.identifier
-            ncx_location = @opf_file.toc
+
+            # TODO: make this a method of OpfFile
+            ncx_location = @opf_file.manifest[@opf_file.toc].href
 
             # The NCX file is the last main file to open.
             @ncx_file = Epub::Ncx::NcxFile.new(fullpath(ncx_location))
@@ -81,6 +112,8 @@ module Epub
         # Creates a brand new project, using defaults.
         def create_new_project
             FileUtils.mkdir_p(@directory)
+            Epub::MimeTypeFile.create(@directory)
+            Epub::ContainerFile.create(@directory, DEFAULT_OPF_FILE)
 
             @ncx_file = Epub::Ncx::NcxFile.new(fullpath(DEFAULT_NCX_FILE))
             @ncx_file.add_metadata('dtb:depth', '1')
@@ -89,15 +122,32 @@ module Epub
 
             @opf_file = Epub::Opf::OpfFile.new(fullpath(DEFAULT_OPF_FILE))
             @opf_file.language = DEFAULT_LANGUAGE
-            @opf_file.toc = DEFAULT_NCX_FILE
-            @opf_file.add_manifest_item('ncx', DEFAULT_NCX_FILE, 
-                                        Epub::Opf::MEDIA_TYPES['ncx'])
+            @opf_file.toc = DEFAULT_NCX_FILE_ID
+            @opf_file.add_manifest_item(DEFAULT_NCX_FILE_ID, 
+                                        DEFAULT_NCX_FILE)
 
-            self.identifier = "#{Socket.hostname} [#{Time.now.to_s}]"
+            self.identifier = "#{Socket.gethostname} [#{Time.now.to_s}]"
             self.title = DEFAULT_TITLE
 
-            Epub::MimeTypeFile.create(@directory)
-            Epub::ContainerFile.create(@directory, DEFAULT_OPF_FILE)
+            # create a first file; should probably be a convenience method!
+            FileUtils.mkdir_p(fullpath('content'))
+            File.open(fullpath(['content', 'title.html']), 'w') do |file|
+                file.puts <<-END
+<?xml version="1.0" encoding="UTF-8" ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>#{@title}</title> 
+  </head>
+  <body>
+    <h1>#{@title}</h1>
+  </body>
+</html>
+                END
+            end
+            @opf_file.add_manifest_item('title', 'content/title.html')
+            # TODO: add navigation point more convenient?
+            @ncx_file.map << Epub::Ncx::NavigationPoint.new(
+                            'title', '1', @title, 'content/title.html')
         end
     end
 end

@@ -1,0 +1,21 @@
+#!/usr/bin/ruby
+#
+# Creates an epub directory from scratch, with some 
+# useful files in it.
+#
+require 'epub'
+
+if (ARGV.size != 1)
+    STDERR.puts "Usage: #{$0} <name of directory>"
+    exit 1
+end
+
+$directory = ARGV[0]
+if (File.exists? $directory)
+    STDERR.puts "Directory '#{$directory}' exists; not creating."
+    exit 1
+end
+
+$project = Epub::Project.new($directory)
+$project.save
+
