@@ -5,6 +5,7 @@ in concept to a project in Mobipocket Creator.
 require 'epub/opf'
 require 'epub/ncx'
 require 'epub/container'
+require 'epub/templates'
 
 require 'FileUtils'
 require 'ftools'
@@ -73,7 +74,7 @@ module Epub
 
                 epub_file = "#{File.join(old_dir, @title.gsub(/'" /, '_'))}.epub"
 
-                # TODO: get all files involved from OPF.
+                # TODO: get all files involved from OPF and add them spec..
                 system(%Q(zip -Xr9D '#{epub_file}' mimetype))
                 system(%Q(zip -Xr9D '#{epub_file}' * -x mimetype))
             ensure
@@ -123,29 +124,20 @@ module Epub
             @opf_file = Epub::Opf::OpfFile.new(fullpath(DEFAULT_OPF_FILE))
             @opf_file.language = DEFAULT_LANGUAGE
             @opf_file.toc = DEFAULT_NCX_FILE_ID
-            @opf_file.add_manifest_item(DEFAULT_NCX_FILE_ID, 
-                                        DEFAULT_NCX_FILE)
+            @opf_file.add_manifest_item(DEFAULT_NCX_FILE_ID, DEFAULT_NCX_FILE)
 
             self.identifier = "#{Socket.gethostname} [#{Time.now.to_s}]"
             self.title = DEFAULT_TITLE
 
-            # create a first file; should probably be a convenience method!
             FileUtils.mkdir_p(fullpath('content'))
+
+            # create a first file; should probably be a convenience method!
             File.open(fullpath(['content', 'title.html']), 'w') do |file|
-                file.puts <<-END
-<?xml version="1.0" encoding="UTF-8" ?>
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>#{@title}</title> 
-  </head>
-  <body>
-    <h1>#{@title}</h1>
-  </body>
-</html>
-                END
+                Epub::Templates.writeHtmlTemplate(file, @title)
             end
             @opf_file.add_manifest_item('title', 'content/title.html')
-            # TODO: add navigation point more convenient?
+            # TODO: add navigation point more convenient, like auto-inc 
+            # or manipulate otherwise play order
             @ncx_file.map << Epub::Ncx::NavigationPoint.new(
                             'title', '1', @title, 'content/title.html')
         end
