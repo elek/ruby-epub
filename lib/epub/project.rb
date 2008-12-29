@@ -55,31 +55,39 @@ module Epub
 
         private
 
+        # Full path to the project directory.
+        #
+        # Parameters: 
+        # - localpath : if given, prepends the full path
+        def fullpath(localpath = '')
+            return "#{@directory}/#{localpath}"
+        end
+
         # Reads in data from an existing project
         def initialize_from_existing
             opf_location = ContainerFile.get_opf_path(@directory)
 
             # The OPF file has a pointer to the TOC file, 
             # the title, and the identifier for this project
-            @opf_file = Epub::Opf::OpfFile.new(opf_location)
+            @opf_file = Epub::Opf::OpfFile.new(fullpath(opf_location))
             @title = @opf_file.title
             @identifier = @opf_file.identifier
             ncx_location = @opf_file.toc
 
             # The NCX file is the last main file to open.
-            @ncx_file = Epub::Ncx::NcxFile.new(ncx_location)
+            @ncx_file = Epub::Ncx::NcxFile.new(fullpath(ncx_location))
         end
 
         # Creates a brand new project, using defaults.
         def create_new_project
             FileUtils.mkdir_p(@directory)
 
-            @ncx_file = Epub::Ncx::NcxFile.new DEFAULT_NCX_FILE
+            @ncx_file = Epub::Ncx::NcxFile.new(fullpath(DEFAULT_NCX_FILE))
             @ncx_file.add_metadata('dtb:depth', '1')
             @ncx_file.add_metadata('dtb:totalPageCount', '0')
             @ncx_file.add_metadata('dtb:maxPageNumber', '0')
 
-            @opf_file = Epub::Opf::OpfFile.new DEFAULT_OPF_FILE
+            @opf_file = Epub::Opf::OpfFile.new(fullpath(DEFAULT_OPF_FILE))
             @opf_file.language = DEFAULT_LANGUAGE
             @opf_file.toc = DEFAULT_NCX_FILE
             @opf_file.add_manifest_item('ncx', DEFAULT_NCX_FILE, 
