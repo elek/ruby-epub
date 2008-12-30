@@ -96,9 +96,10 @@ module Epub
 
                 epub_file = "#{File.join(old_dir, @title.gsub(/'" /, '_'))}.epub"
 
-                # TODO: get all files involved from OPF and add them spec..
-                system(%Q(zip -Xr9D '#{epub_file}' mimetype))
-                system(%Q(zip -Xr9D '#{epub_file}' * -x mimetype))
+                system(%Q(zip -Xr9D '#{epub_file}' mimetype META-INF #{localpath(@opf_file.file)}))
+                @opf_file.manifest.values.each do |item|
+                    system(%Q(zip -Xr9D '#{epub_file}' '#{item.href}' -x mimetype))
+                end
             ensure
                 Dir.chdir old_dir
             end
@@ -115,6 +116,21 @@ module Epub
             return File.join(@directory, *localpath)
         end
 
+        # Localize path with respect to the project, if 
+        # appropriate. 
+        #
+        # Parameters: 
+        # - path : removes @directory from the path, raises 
+        #          exception if @directory is not part of 
+        #          the path
+        def localpath(path)
+            if (path !~ /^#{@directory}/)
+                raise "#{@directory} is not part of path '#{path}'!"
+            else
+                return path.sub(/^#{@directory}[\/]?/, '')
+            end
+        end
+
         # Reads in data from an existing project
         def initialize_from_existing
             opf_location = ContainerFile.get_opf_path(@directory)
@@ -125,8 +141,7 @@ module Epub
             @title = @opf_file.title
             @identifier = @opf_file.identifier
 
-            # TODO: make this a method of OpfFile
-            ncx_location = @opf_file.manifest[@opf_file.toc].href
+            ncx_location = @opf_file.get_toc_location
 
             # The NCX file is the last main file to open.
             @ncx_file = Epub::Ncx::NcxFile.new(fullpath(ncx_location))

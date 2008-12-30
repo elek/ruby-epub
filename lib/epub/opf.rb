@@ -343,6 +343,17 @@ module Epub
                 File.rename(newfile, @file)
             end
 
+            # Return the local path to the file whose id is specified 
+            # in the spine in the "toc" attribute (usually the NCX file).
+            def get_toc_location
+                toc_manifest_item = @manifest[@toc]
+                if (!toc_manifest_item) 
+                    raise "Manifest item for '#{@toc}' does not exist!"
+                else
+                    return toc_manifest_item.href
+                end
+            end
+
             private
 
             # Initialize all OPF variables from scratch.
@@ -383,7 +394,7 @@ module Epub
                 @guide = {}
 
                 # The TOC file, which is required for the spine.
-                @toc = 'toc.ncx'
+                @toc = 'toc'
             end
 
             # Private helper function for create_from_file. 

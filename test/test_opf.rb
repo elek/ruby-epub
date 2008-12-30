@@ -242,7 +242,7 @@ class TestOpfFile < Test::Unit::TestCase
         assert_equal({}, opf.manifest)
         assert_equal([], opf.spine)
         assert_equal({}, opf.guide)
-        assert_equal('toc.ncx', opf.toc)
+        assert_equal('toc', opf.toc)
     end
 
     def test_set_title
@@ -363,6 +363,38 @@ class TestOpfFile < Test::Unit::TestCase
         end
 
         File.unlink(output_file)
+    end
+
+    def test_get_toc_location
+        opf_file = Epub::Opf::OpfFile.new "#{TMP_DIR}/test.opf"
+        opf_file.toc = "toc" 
+        opf_file.add_manifest_item('toc', 'toc.ncx')
+
+        assert_equal('toc.ncx', opf_file.get_toc_location)
+    end
+
+    def test_get_toc_location_exception
+        opf_file = Epub::Opf::OpfFile.new "#{TMP_DIR}/test.opf"
+        opf_file.toc = "toc" 
+
+        begin
+            opf_file.get_toc_location
+        rescue => ex
+            assert_equal(%q(Manifest item for 'toc' does not exist!), ex.message)
+        else
+            flunk('Expected exception to be raised')
+        end
+    end
+
+    def test_add_manifest_item
+        opf_file = Epub::Opf::OpfFile.new "#{TMP_DIR}/test.opf"
+        opf_file.add_manifest_item('title', 'content/title.html')
+
+        manifest_item = opf_file.manifest['title']
+        assert_not_nil(manifest_item, "Manifest item not found")
+        assert_equal('title', manifest_item.id)
+        assert_equal('content/title.html', manifest_item.href)
+        assert_equal('application/xhtml+xml', manifest_item.media_type)
     end
 end
 
