@@ -38,6 +38,12 @@ end
 
 CLEAN.include('pkg')
 
+require 'rake/rdoctask'
+Rake::RDocTask.new do |rd|
+    rd.main = "README"
+    rd.rdoc_files.include("README", "lib/**/*.rb")
+end
+
 task :default => [ :clean, :package, :test ]
 
 # vim: syntax=Ruby
