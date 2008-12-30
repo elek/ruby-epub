@@ -74,13 +74,13 @@ module Epub
             #
             # Parameters: 
             # - id : unique (to this map) id of the navigation point
-            # - play_order : sequential play order of this navigation point
+            # - play_order : sequential play order of this navigation point; must be number or string that can be converted to number
             # - label : label of the navigation point
             # - content : location of the navigation point's content
             # - points : list of NavigationPoint instances (optional)
             def initialize(id, play_order, label, content, points = [])
                 @id = id
-                @play_order = play_order
+                @play_order = play_order.to_i
                 @label = label
                 @content = content
                 @points = points
@@ -166,6 +166,56 @@ module Epub
                     File.rename(@file, backupfile)
                 end
                 File.rename(newfile, @file)
+            end
+
+            # Appends an item to the navigation map as a new navigation point. 
+            # It gets the latest play order available (for giving it a specific 
+            # playOrder, see insert_navigation_point.
+            #
+            # Parameters
+            # - id : id of the navigation point (needs to be unique to NCX)
+            # - label : label of the navigation point
+            # - src : src/href of the navigation point content
+            #
+            # Returns the new navigation point.
+            #
+            def add_navigation_point(id, label, src)
+                playOrder = map.size + 1
+                new_np = NavigationPoint.new(id, playOrder, label, src)
+                @map << new_np
+                return new_np
+            end
+
+            # Inserts an item into the navigation map as a new navigation 
+            # point in a specific position in the play order.  All other 
+            # items get shifted downwards. 
+            #
+            # Parameters
+            # - id : id of the navigation point (needs to be unique to NCX)
+            # - label : label of the navigation point
+            # - src : src/href of the navigation point content
+            # - play_order : play order of the new navigation point. Index 
+            #                starts at 1.
+            #
+            # Returns the new navigation point.
+            #
+            def insert_navigation_point(id, label, src, playOrder)
+                new_index = playOrder - 1
+                new_size = map.size + 1
+
+                if (playOrder > new_size) 
+                    raise "Play order #{playOrder} is greater than the new map size of #{new_size}!"
+                elsif (playOrder <= 0) 
+                    raise "Play order #{playOrder} is 0 or less!"
+                else
+                    new_np = NavigationPoint.new(id, playOrder, label, src)
+                    map.insert(new_index, new_np)
+                    map[(new_index + 1)..(map.size)].each do |np|
+                        np.play_order += 1
+                    end
+
+                    return new_np
+                end
             end
 
             private

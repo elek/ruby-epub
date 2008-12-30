@@ -23,6 +23,8 @@ along with RubyEpub.  If not, see <http://www.gnu.org/licenses/>.
 A "project" directory for an EPub publication, similar 
 in concept to a project in Mobipocket Creator.
 
+TODO: Add unit tests for Project!
+
 =end
 require 'epub/opf'
 require 'epub/ncx'
@@ -168,15 +170,11 @@ module Epub
 
             FileUtils.mkdir_p(fullpath('content'))
 
-            # create a first file; should probably be a convenience method!
             File.open(fullpath(['content', 'title.html']), 'w') do |file|
                 Epub::Templates.writeHtmlTemplate(file, @title)
             end
             @opf_file.add_manifest_item('title', 'content/title.html')
-            # TODO: add navigation point more convenient, like auto-inc 
-            # or manipulate otherwise play order
-            @ncx_file.map << Epub::Ncx::NavigationPoint.new(
-                            'title', '1', @title, 'content/title.html')
+            @ncx_file.add_navigation_point('title', @title, 'content/title.html')
         end
     end
 end
