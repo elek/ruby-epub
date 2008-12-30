@@ -1,1 +1,7 @@
+TODO: 
 
+ * Epub::Project - use Archive::Zip instead of external command
+ * Epub::Project - add unit tests for Project!
+ * Epub::Ncx::NcxFile - add [](play_order), []=(play_order)
+ * Epub::Ncx::NcxFile - add size()
+ * Epub::Templates.writeHtmlFile - maybe add parameter for stylesheet to include
