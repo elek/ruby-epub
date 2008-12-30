@@ -2,6 +2,8 @@
 Test cases for the OPF classes in the Epub::Opf module.
 =end
 require 'FileUtils'
+
+require 'test_unit_additions.rb'
 require 'test/unit'
 require 'epub.rb'
 
@@ -354,14 +356,7 @@ class TestOpfFile < Test::Unit::TestCase
         opf.file = output_file
         opf.write
 
-        written_lines = File.open(output_file).readlines
-        expected_lines = File.open(expected_file).readlines
-
-        assert_equal(expected_lines.size, written_lines.size, "Expected #{expected_lines.size} lines")
-        expected_lines.each_index do |i|
-            assert_equal(expected_lines[i], written_lines[i], "Line #{i+1} differs")
-        end
-
+        assert_files_same(expected_file, output_file)
         File.unlink(output_file)
     end
 
