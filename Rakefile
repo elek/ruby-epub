@@ -44,6 +44,7 @@ Rake::RDocTask.new do |rd|
     rd.rdoc_files.include("README", "lib/**/*.rb")
 end
 
-task :default => [ :clean, :package, :test ]
+task :default => [ :rdoc, :package, :test ]
+task :clean => :clobber_rdoc
 
 # vim: syntax=Ruby
