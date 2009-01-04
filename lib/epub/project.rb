@@ -96,7 +96,7 @@ module Epub
             begin
                 Dir.chdir @directory
 
-                epub_file = "#{File.join(old_dir, @title.gsub(/'" /, '_'))}.epub"
+                epub_file = "#{File.join(old_dir, File.basename(Dir.pwd).gsub(/[ ,:]/,'_'))}.epub"
 
                 system(%Q(zip -Xr9D '#{epub_file}' mimetype META-INF #{localpath(@opf_file.file)}))
                 @opf_file.manifest.values.each do |item|
@@ -104,6 +104,36 @@ module Epub
                 end
             ensure
                 Dir.chdir old_dir
+            end
+        end
+
+        # Registers a content file with the OPF.
+        #
+        # Parameters: 
+        # - id : unique id for the file 
+        # - href : path relative to the directory to the file
+        # - add_to_spine : (optional) if true, adds id to the spine; default false
+        # - media_type : (optional) media type of the file
+        def register_with_opf(id, href, add_to_spine = false, media_type = nil)
+            @opf_file.add_manifest_item(id, href, media_type)
+            if (add_to_spine) 
+                @opf_file.add_spine_itemref(id)
+            end
+        end
+
+        # Registers a content file with the NCX.
+        #
+        # Parameters: 
+        # - id : unique id for the navigation point
+        # - label : label for the navgiation point
+        # - src : path relative to the directory to the file
+        # - play_order : (optional) the play order; by default, the 
+        #                next available in the NCX.
+        def register_with_ncx(id, label, src, play_order = nil) 
+            if (play_order)
+                @ncx_file.insert_navigation_point(id, label, src, play_order)
+            else
+                @ncx_file.add_navigation_point(id, label, src)
             end
         end
 
@@ -173,8 +203,8 @@ module Epub
             File.open(fullpath(['content', 'title.html']), 'w') do |file|
                 Epub::Templates.writeHtmlTemplate(file, @title)
             end
-            @opf_file.add_manifest_item('title', 'content/title.html')
-            @ncx_file.add_navigation_point('title', @title, 'content/title.html')
+            register_with_opf('title', 'content/title.html', true)
+            register_with_ncx('title', @title, 'content/title.html')
         end
     end
 end

@@ -7,10 +7,6 @@ require 'test_unit_additions.rb'
 require 'test/unit'
 require 'epub.rb'
 
-TMP_DIR = 'test/tmp'
-DATA_DIR = 'test/data'
-FileUtils.mkdir_p(TMP_DIR)
-
 class TestDc < Test::Unit::TestCase
     TITLE = 'The Constitution of the United States of America'
     AUTHOR = 'Philadelphia Convention, The'

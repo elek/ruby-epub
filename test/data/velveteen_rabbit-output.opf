@@ -1,7 +1,7 @@
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="sdid">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
         <dc:title>The Velveteen Rabbit or How Toys Become Real</dc:title>
-        <dc:lang>en-US</dc:lang>
+        <dc:language>en-US</dc:language>
         <dc:identifier id="sdid">Spontaneous Derivation [2008.12.10-21:02:00]</dc:identifier>
 <dc:creator opf:file-as="Williams, Margery" opf:role="aut">Margery Williams</dc:creator>
 <dc:creator opf:file-as="Nicholson, William" opf:role="ill">William Nicholson</dc:creator>

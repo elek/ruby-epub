@@ -2,6 +2,41 @@ TODO:
 
  * Epub::Project - use Archive::Zip instead of external command
  * Epub::Project - add unit tests for Project!
+ * Epub::Opf::OpfFile - ability to manipulate spine
+ * Epub::Ncx::NcxFile - refactor to add NavigationMap class
+ * Epub::Ncx::NcxFile - swap navigation points
  * Epub::Ncx::NcxFile - add [](play_order), []=(play_order)
  * Epub::Ncx::NcxFile - add size()
+ * Epub::Ncx::NcxFile - add child navigation points
  * Epub::Templates.writeHtmlFile - maybe add parameter for stylesheet to include
+ * Add ability to create a toc.html from an NCX file (mobi compatability)
+ * Epub::Project - add a cover
+ * Avoid unncessary saving
+
+Use Cases: 
+
+Note: an 'x' for a 'parent' use case just means the parent is 
+implemented, and not necessarily the children.
+
+  x 1. Create an EPUB project.
+        a. Optionally a specified title.
+  x 2. Compile an EPUB project into a .epub file.
+  x 3. Set the title of an EPUB project.
+11* 4. Set the language of an EPUB project.
+  x 5. Read in an existing EPUB project.
+  x 6. Set the unique identifier of an EPUB project (id=bookid).
+        a. Allow specification of the scheme and id type
+        b. Change the id type of the unique idetnfier 
+        c. Add multiple identifiers.
+3*  7. Add and remove a content file from the manifest
+4*  8. Add, remove, and move items in the spine
+6*  9. Add, remove, and move navigation points.
+5*  10. Remove a file and all its references entirely.
+1*  11. Add/remove contributors (with specific types)
+2*  12. Add/remove other dc metadata
+10* 13. Add a cover
+8*  14. Mobi-compatible toc.html generated
+9*  15. Add/remove reference items in the guide
+7*  16. Mobi generation 
+-*  17. Pretty-print information about a project.
+

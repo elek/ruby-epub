@@ -300,6 +300,13 @@ module Epub
                 @manifest.delete id
             end
 
+            def add_spine_itemref(id)
+                @spine << (SpineItemRef.new id)
+            end
+            # TODO: delete_spine_itemref, insert_spine_itemref
+
+            # TODO: add_guide_reference, delete_guide_reference
+
             # Writes this OPF file to disk, making a backup of the 
             # previous file if it existed.
             def write
@@ -363,7 +370,7 @@ module Epub
                 # of these, we're going to (for now) assume just 
                 # one each, although this can easily be extended.
                 @dc_title = Dc.new('title', '')
-                @dc_language = Dc.new('lang', '')
+                @dc_language = Dc.new('language', '')
 
                 # A special case of required metadata: the specified 
                 # unique identifier. There can be multiple of these, 

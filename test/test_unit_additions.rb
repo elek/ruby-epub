@@ -1,4 +1,13 @@
 require 'test/unit/assertions'
+require 'FileUtils'
+
+unless defined? TMP_DIR
+    TMP_DIR = 'test/tmp'
+    FileUtils.mkdir_p(TMP_DIR)
+end
+unless defined? DATA_DIR
+    DATA_DIR = 'test/data'
+end
 
 module Test::Unit::Assertions
     def assert_files_same(expected_file, output_file)

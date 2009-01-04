@@ -7,10 +7,6 @@ require 'test_unit_additions.rb'
 require 'test/unit'
 require 'epub.rb'
 
-TMP_DIR = 'test/tmp'
-DATA_DIR = 'test/data'
-FileUtils.mkdir_p(TMP_DIR)
-
 class TestMetaData < Test::Unit::TestCase
     def test_meta_uid
         meta = Epub::Ncx::MetaData.new('dtb:uid', 'Spontaneous Derivation [Tue Dec 23 20:40:31 -0800 2008]')
