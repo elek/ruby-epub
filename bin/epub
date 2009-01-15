@@ -1,0 +1,98 @@
+#!/usr/bin/ruby
+#
+# Creates, compiles, adds, etc. epub projects and epub 
+# files.
+#
+require 'epub'
+require 'optparse'
+require 'ostruct'
+
+def help
+    puts <<-END
+Usage: #{$0} <action> <directory> [options]
+
+Available actions: 
+
+create
+
+    Creates a new ePub project; <directory> should not exist beforehand.
+
+    Supports: 
+
+        --title TITLE           Title of the work (defaults to TITLE)
+        --author AUTHOR         Author in last-name, first-name form (optional)
+        --language LANG         Language the work is in (defaults to en-US)
+
+compile
+
+    Compiles an ePub project.
+
+add-to-opf
+
+    Adds the rest of ARGV as files to the OPF file.
+
+    END
+end
+
+def main
+    if (ARGV.size < 2)
+        STDERR.puts "Action and directory must be provided. For more information, see $0 --help"
+        exit 1
+    end
+
+    $action = ARGV.shift
+    $directory = ARGV.shift 
+    $project = Epub::Project.new $directory
+
+    case $action
+    when 'create'
+        options = parse_options ARGV
+        $project.title = options.title if options.title
+        $project.language = options.language if options.language
+        $project.add_creator(options.author, 'aut') if options.author
+
+        $project.save
+
+    when 'compile'
+        $directory = '.' unless $directory
+        $project.compile
+
+    when 'add-to-opf' 
+        ARGV.each do |arg|
+            id = arg.gsub(%r|[^-A-Za-z0-9_]|, '')
+            id.gsub!(/-/, '_')
+            $project.register_with_opf(id, arg, true)
+        end
+        $project.save
+
+    when 'add-guide'
+        file = ARGV.shift
+
+        options = parse_options ARGV
+        $project.register_guide_reference(options.guide_type, options.title, file)
+        $project.save
+
+    else 
+        help
+        exit 1
+
+    end
+
+end
+
+def parse_options(args)
+    options = OpenStruct.new
+
+    opts = OptionParser.new do |opts|
+        opts.on('-t', '--title TITLE') { |title| options.title = title }
+        opts.on('-a', '--author AUTHOR') { |author| options.author = author }
+        opts.on('-l', '--language LANG') { |lang| options.language = lang }
+        opts.on('-y', '--type TYPE') { |type| options.guide_type = type }
+    end
+
+    opts.parse! args
+
+    return options
+end
+
+main
