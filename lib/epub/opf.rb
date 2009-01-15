@@ -300,12 +300,29 @@ module Epub
                 @manifest.delete id
             end
 
+            # Adds a creator with a given role (defaults to author).
+            #
+            # Parameters: 
+            # - name : name of the creator in last name, first name form.
+            # - role : role of the creator, defaults to 'aut'
+            #
+            def add_creator(name, role = 'aut')
+                last_name, first_name = name.split(/\s*,\s*/, 1)
+                creator = Dc.new('creator', "#{first_name} #{last_name}", 
+                                 { 'opf:file-as' => "#{last_name}, #{first_name}", 
+                                   'opf:role' => role })
+                @dc_other.push creator
+            end
+
             def add_spine_itemref(id)
                 @spine << (SpineItemRef.new id)
             end
             # TODO: delete_spine_itemref, insert_spine_itemref
 
-            # TODO: add_guide_reference, delete_guide_reference
+            # TODO: delete_guide_reference
+            def add_guide_reference(type, title, href)
+                @guide[type] = GuideReference.new(type, title, href)
+            end
 
             # Writes this OPF file to disk, making a backup of the 
             # previous file if it existed.

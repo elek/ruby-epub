@@ -79,6 +79,20 @@ module Epub
             @ncx_file.identifier = identifier
         end
 
+        # Sets the language of the project
+        def language=(language)
+            @opf_file.language = language
+        end
+
+        # Adds a creator.
+        #
+        # Parameters:
+        # - name : name of the contributor, in last_name,first_name form
+        # - role : role of the creator, defaults to author
+        def add_creator(name, role = 'aut')
+            @opf_file.add_creator(name, role)
+        end
+
         # Writes all files using the current state. 
         def save
             @opf_file.write
@@ -119,6 +133,12 @@ module Epub
             if (add_to_spine) 
                 @opf_file.add_spine_itemref(id)
             end
+        end
+
+        # Sets up a reference guide item with the OPF.
+        #
+        def register_guide_reference(type, title, href)
+            @opf_file.add_guide_reference(type, title, href)
         end
 
         # Registers a content file with the NCX.
