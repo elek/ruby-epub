@@ -13,7 +13,10 @@ Usage: #{$0} <action> <directory> [options]
 
 Available actions: 
 
-create
+help
+    Shows this help.
+
+create <directory> [--title "title" --author "last,first"]
 
     Creates a new ePub project; <directory> should not exist beforehand.
 
@@ -23,20 +26,34 @@ create
         --author AUTHOR         Author in last-name, first-name form (optional)
         --language LANG         Language the work is in (defaults to en-US)
 
-compile
+compile <directory>
 
     Compiles an ePub project.
 
-add-to-opf
+add-to-opf <directory> <file1> <file2> ...
 
-    Adds the rest of ARGV as files to the OPF file.
+    Adds the rest of the commandline as files to the OPF file.
+
+add-guide <directory> <file> --type "toc" --title "Table of Contents"
+
+    Registers <file> as a reference item to the guide.
+
+    Requires: 
+
+        --type TYPE             Type of the guide; examples: toc, text
+        --title TITLE           Title of the guide 
 
     END
 end
 
 def main
+    if (ARGV[0] == 'help')
+        help
+        exit 0
+    end
+
     if (ARGV.size < 2)
-        STDERR.puts "Action and directory must be provided. For more information, see $0 --help"
+        STDERR.puts "Action and directory must be provided. For more information, see #{$0} --help"
         exit 1
     end
 
