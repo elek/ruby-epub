@@ -29,7 +29,7 @@ We don't include 'tours', which are really deprecated.
 
 =end
 require 'ftools'
-require 'FileUtils'
+require 'fileutils'
 require 'rexml/document'
 require 'ostruct'
 require 'time'

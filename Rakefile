@@ -16,6 +16,7 @@ spec = Gem::Specification.new do |s|
     s.platform          = Gem::Platform::RUBY
     s.summary           = 'An EPUB (and associated file formats, like OPF) library for Ruby.'
     s.files             = FileList['{bin,docs,lib,test}/**/*'].exclude('rdoc').to_a
+    s.executables       = ['epub']
 
     s.require_path      = 'lib'
     s.autorequire       = 'epub'

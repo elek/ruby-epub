@@ -24,7 +24,7 @@ Utilities for dealing with the OEBPS Container file and the
 mimetype file.
 
 =end
-require 'FileUtils'
+require 'fileutils'
 require 'rexml/document'
 
 module Epub

@@ -31,7 +31,7 @@ require 'epub/ncx'
 require 'epub/container'
 require 'epub/templates'
 
-require 'FileUtils'
+require 'fileutils'
 require 'ftools'
 require 'socket'
 require 'time'

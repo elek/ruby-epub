@@ -43,6 +43,12 @@ add-guide <directory> <file> --type "toc" --title "Table of Contents"
         --type TYPE             Type of the guide; examples: toc, text
         --title TITLE           Title of the guide 
 
+Hints: 
+    If you're currently in an Epub directory, you can specify "." 
+    as the directory.  Example: 
+
+        epub compile .
+
     END
 end
 
@@ -53,7 +59,8 @@ def main
     end
 
     if (ARGV.size < 2)
-        STDERR.puts "Action and directory must be provided. For more information, see #{$0} --help"
+        STDERR.puts "Action and directory must be provided. For more information, see #{$0} help"
+        help
         exit 1
     end
 
