@@ -12,7 +12,7 @@ An EPUB (and associated file formats, like OPF) library for Ruby.
 
 == INSTALL:
 
-* sudo gem install ruby-epub
+* sudo gem install ruby-epub-0.0.1.gem
 
 == LICENSE:
 
