@@ -9,7 +9,7 @@ require 'rake/testtask'
 
 spec = Gem::Specification.new do |s|
     s.name              = 'ruby-epub'
-    s.version           = '0.0.1'
+    s.version           = '0.0.2'
     s.author            = 'Arachne Jericho'
     s.email             = 'arachne.jericho@gmail.com'
     s.homepage          = 'https://ruby-epub.googlecode.com/'
