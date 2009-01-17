@@ -35,6 +35,14 @@ add-to-opf <directory> <file1> <file2> ...
 
     Adds the rest of the commandline as files to the OPF file.
 
+add-to-ncx <directory> <file1> <file2> ... 
+
+    Adds the rest of the commandline, in order, as navigation points in
+    the NCX file.  No nesting specifications yet.  
+
+    The labels for the navigation points are derived from the title 
+    attribute of the HTML files.
+
 add-guide <directory> <file> --type "toc" --title "Table of Contents"
 
     Registers <file> as a reference item to the guide.
