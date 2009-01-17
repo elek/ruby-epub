@@ -1,7 +1,7 @@
 =begin
 Test cases for the OPF classes in the Epub::Opf module.
 =end
-require 'FileUtils'
+require 'fileutils'
 
 require 'test_unit_additions.rb'
 require 'test/unit'

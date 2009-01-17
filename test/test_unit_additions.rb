@@ -1,5 +1,5 @@
 require 'test/unit/assertions'
-require 'FileUtils'
+require 'fileutils'
 
 unless defined? TMP_DIR
     TMP_DIR = 'test/tmp'
