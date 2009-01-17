@@ -6,6 +6,7 @@
 require 'epub'
 require 'optparse'
 require 'ostruct'
+require 'rexml/document'
 
 def help
     puts <<-END
@@ -83,9 +84,9 @@ def main
 
     when 'add-to-opf' 
         ARGV.each do |arg|
-            id = arg.gsub(%r|[^-A-Za-z0-9_]|, '')
-            id.gsub!(/-/, '_')
-            $project.register_with_opf(id, arg, true)
+            id = create_id arg
+            add_to_spine = (arg =~ /\.html$/)
+            $project.register_with_opf(id, arg, add_to_spine)
         end
         $project.save
 
@@ -94,6 +95,15 @@ def main
 
         options = parse_options ARGV
         $project.register_guide_reference(options.guide_type, options.title, file)
+        $project.save
+
+    when 'add-to-ncx'
+        ARGV.each do |arg|
+            id = create_id arg
+            label = get_ncx_label arg
+
+            $project.register_with_ncx(id, label, arg)
+        end
         $project.save
 
     else 
@@ -118,5 +128,25 @@ def parse_options(args)
 
     return options
 end
+
+# Turns the given filename into a standard ruby-epub file ID, 
+# for consistent reference in the manifest and the spine.
+def create_id(filename)
+    id = filename.gsub(%r|[^-A-Za-z0-9_]|, '')
+    id.gsub!(/-/, '_')
+    return id
+end
+
+# Creates the NCX label for an HTML file based on the html/head/title 
+# text.
+def get_ncx_label(file)
+    label = ''
+    File.open(file) do |file|
+        doc = REXML::Document.new file
+        label = doc.elements['html/head/title'].text
+    end
+    return label
+end
+
 
 main

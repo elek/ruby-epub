@@ -307,7 +307,7 @@ module Epub
             # - role : role of the creator, defaults to 'aut'
             #
             def add_creator(name, role = 'aut')
-                last_name, first_name = name.split(/\s*,\s*/, 1)
+                last_name, first_name = name.split(/\s*,\s*/, 2)
                 creator = Dc.new('creator', "#{first_name} #{last_name}", 
                                  { 'opf:file-as' => "#{last_name}, #{first_name}", 
                                    'opf:role' => role })

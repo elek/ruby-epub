@@ -145,7 +145,7 @@ module Epub
         #
         # Parameters: 
         # - id : unique id for the navigation point
-        # - label : label for the navgiation point
+        # - label : label for the navigation point
         # - src : path relative to the directory to the file
         # - play_order : (optional) the play order; by default, the 
         #                next available in the NCX.
@@ -200,7 +200,15 @@ module Epub
         end
 
         # Creates a brand new project, using defaults.
-        def create_new_project
+        #
+        # If create_template is true, a template file (title.html) is 
+        # created in the content directory and registered as part 
+        # of the OPF manifest and the NCX file.
+        #
+        # Parameters:
+        # - create_template: create a template file. Default: false
+        #
+        def create_new_project(create_template = false)
             FileUtils.mkdir_p(@directory)
             Epub::MimeTypeFile.create(@directory)
             Epub::ContainerFile.create(@directory, DEFAULT_OPF_FILE)
@@ -220,11 +228,13 @@ module Epub
 
             FileUtils.mkdir_p(fullpath('content'))
 
-            File.open(fullpath(['content', 'title.html']), 'w') do |file|
-                Epub::Templates.writeHtmlTemplate(file, @title)
+            if create_template
+                File.open(fullpath(['content', 'title.html']), 'w') do |file|
+                    Epub::Templates.writeHtmlTemplate(file, @title)
+                end
+                register_with_opf('title', 'content/title.html', true)
+                register_with_ncx('title', @title, 'content/title.html')
             end
-            register_with_opf('title', 'content/title.html', true)
-            register_with_ncx('title', @title, 'content/title.html')
         end
     end
 end
