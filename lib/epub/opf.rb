@@ -80,7 +80,7 @@ module Epub
             'jpeg' => 'image/jpeg', 
             'png' => 'image/png', 
             'css' => 'text/css',
-            'ncx' => 'application/x-dbtncx+xml',
+            'ncx' => 'application/x-dtbncx+xml',
         }
 
         # Convenience listing of allowed reference types

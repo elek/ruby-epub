@@ -84,7 +84,7 @@ class TestManifestItem < Test::Unit::TestCase
         manifest_item = Epub::Opf::ManifestItem.new('ncx', 'toc.ncx')
         assert_equal('ncx', manifest_item.id)
         assert_equal('toc.ncx', manifest_item.href)
-        assert_equal('application/x-dbtncx+xml', manifest_item.media_type)
+        assert_equal('application/x-dtbncx+xml', manifest_item.media_type)
     end
 
     def test_create_css_suffix
