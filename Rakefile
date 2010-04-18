@@ -9,7 +9,7 @@ require 'rake/testtask'
 
 spec = Gem::Specification.new do |s|
     s.name              = 'ruby-epub'
-    s.version           = '0.0.2'
+    s.version           = '0.0.3'
     s.author            = 'Arachne Jericho'
     s.email             = 'arachne.jericho@gmail.com'
     s.homepage          = 'https://ruby-epub.googlecode.com/'
@@ -23,7 +23,8 @@ spec = Gem::Specification.new do |s|
     # s.test_file       = 'test/test-epub.rb'
     s.has_rdoc          = true
     s.extra_rdoc_files  = ['README']
-    # s.add_dependency()
+
+    s.add_dependency('hpricot', '>=0.8.1')
 end
 
 

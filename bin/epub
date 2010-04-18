@@ -47,25 +47,35 @@ create <directory> [--title "title" --author "last,first"]
         --author AUTHOR         Author in last-name, first-name form (optional)
         --language LANG         Language the work is in (defaults to en-US)
 
-compile <directory>
+compile [<directory>]
 
-    Compiles an ePub project.
+    Compiles an ePub project.  If no directory is specified, assumes 
+    current directory.
 
-add-to-opf <directory> <file1> <file2> ...
+add-to-opf [<directory>] <file1> <file2> ...
 
-    Adds the rest of the commandline as files to the OPF file.
+    Adds the rest of the commandline as files to the OPF file.  
 
-add-to-ncx <directory> <file1> <file2> ... 
+    A directory does not have to be specified if the first item in the 
+    file list is a non-directory.
+
+add-to-ncx [<directory>] <file1> <file2> ... 
 
     Adds the rest of the commandline, in order, as navigation points in
     the NCX file.  No nesting specifications yet.  
 
+    A directory does not have to be specified if the first item in the 
+    file list is a non-directory.
+
     The labels for the navigation points are derived from the title 
     attribute of the HTML files.
 
-add-guide <directory> <file> --type "toc" --title "Table of Contents"
+add-guide [<directory>] <file> --type "toc" --title "Table of Contents"
 
     Registers <file> as a reference item to the guide.
+
+    A directory does not have to be specified if the first item in the 
+    file list is a non-directory.
 
     Requires: 
 
@@ -81,24 +91,36 @@ Hints:
     END
 end
 
+def exit_with_error(msg)
+    STDERR.puts msg
+    help
+    exit 1
+end
+
+def create_project
+    $project = Epub::Project.new $directory
+end
+
 def main
     if (ARGV[0] == 'help')
         help
         exit 0
     end
 
-    if (ARGV.size < 2)
-        STDERR.puts "Action and directory must be provided. For more information, see #{$0} help"
-        help
-        exit 1
+    if (ARGV.size < 1)
+        exit_with_error "At least an action must be provided. For more information, see #{$0} help"
     end
 
     $action = ARGV.shift
-    $directory = ARGV.shift 
-    $project = Epub::Project.new $directory
 
     case $action
     when 'create'
+        if ARGV.size < 1
+            exit_with_error "Create must have a directory specified."
+        end
+        $directory = ARGV.shift
+        create_project
+
         options = parse_options ARGV
         $project.title = options.title if options.title
         $project.language = options.language if options.language
@@ -107,10 +129,23 @@ def main
         $project.save
 
     when 'compile'
-        $directory = '.' unless $directory
+        if ARGV.size < 1
+            $directory = '.' 
+        else
+            $directory = ARGV.shift
+        end
+        create_project
+
         $project.compile
 
     when 'add-to-opf' 
+        if File.file? ARGV[0]
+            $directory = '.'
+        else
+            $directory = ARGV.shift
+        end
+        create_project
+
         ARGV.each do |arg|
             id = create_id arg
             add_to_spine = (arg =~ /\.html$/)
@@ -119,13 +154,26 @@ def main
         $project.save
 
     when 'add-guide'
-        file = ARGV.shift
+        if File.file? ARGV[0]
+            $directory = '.'
+        else
+            $directory = ARGV.shift
+        end
+        create_project
 
+        file = ARGV.shift
         options = parse_options ARGV
         $project.register_guide_reference(options.guide_type, options.title, file)
         $project.save
 
     when 'add-to-ncx'
+        if File.file? ARGV[0]
+            $directory = '.'
+        else
+            $directory = ARGV.shift
+        end
+        create_project
+
         ARGV.each do |arg|
             id = create_id arg
             label = get_ncx_label arg
