@@ -1,3 +1,7 @@
+It's a slihtly modified version of original ruby-epub. Currently it can be load epub file, modify the attributes, and save it.
+
+You can find the original code in the master branch.
+
 = ruby-epub
 
 * https://ruby-epub.googlecode.com/

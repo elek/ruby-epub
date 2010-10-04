@@ -11,15 +11,14 @@ File.umask(0022)
 
 spec = Gem::Specification.new do |s|
     s.name              = 'ruby-epub'
-    s.version           = '0.0.5'
-    s.author            = 'Arachne Jericho'
-    s.email             = 'arachne.jericho@gmail.com'
+    s.version           = '0.0.6'
+    s.author            = 'Arachne Jericho, modified by Elek Marton'
+    s.email             = 'arachne.jericho@gmail.com, einstand@gmail.com'
     s.homepage          = 'https://ruby-epub.googlecode.com/'
     s.platform          = Gem::Platform::RUBY
     s.summary           = 'An EPUB (and associated file formats, like OPF) library for Ruby.'
     s.files             = FileList['History', 'TODO', 'LICENSE', '{bin,docs,lib,test,html}/**/*'].exclude('rdoc').to_a
     s.executables       = ['epub']
-
     s.require_path      = 'lib'
     # s.test_file       = 'test/test-epub.rb'
     s.has_rdoc          = true
@@ -46,7 +45,7 @@ Rake::RDocTask.new do |rd|
     rd.rdoc_files.include("README", "lib/**/*.rb")
 end
 
-task :default => [ :rdoc, :package, :test ]
+task :default => [ :rdoc, :package]
 task :clean => :clobber_rdoc
 
 # vim: syntax=Ruby
